@@ -1,3 +1,5 @@
+# Code forked from https://github.com/chris-chris/pysc2-examples
+
 # StartCraft II Reinforcement Learning Examples
 
 This example program was built on 
