@@ -1,24 +1,17 @@
-# -*- coding: utf-8 -*-
-# @Author: fyr91
-# @Date:   2019-10-04 15:55:09
-# @Last Modified by:   fyr91
-# @Last Modified time: 2019-11-24 21:21:24
+# Note: Modeled after https://github.com/fyr91/sc2env
+
 import gym
 from pysc2.env import sc2_env
 from pysc2.lib import actions, features, units
 from gym import spaces
-import logging
 import numpy as np
 
-logger = logging.getLogger(__name__)
-
-class DZBEnv(gym.Env):
+class Collect_Mineral_Shard_Env(gym.Env):
 
     metadata = {'render.modes': ['human']}
     default_settings = {
-        'map_name': "DefeatZerglingsAndBanelings",
-        'players': [sc2_env.Agent(sc2_env.Race.terran),
-                    sc2_env.Bot(sc2_env.Race.zerg, sc2_env.Difficulty.hard)],
+        'map_name': "CollectMineralShards",
+        'players': [sc2_env.Agent(sc2_env.Race.terran)],
         'agent_interface_format': features.AgentInterfaceFormat(
                     action_space=actions.ActionSpace.RAW,
                     use_raw_units=True,
@@ -32,8 +25,8 @@ class DZBEnv(gym.Env):
         self.kwargs = kwargs
         self.env = None
         self.marines = []
-        self.banelings = []
-        self.zerglings = []
+
+        # TODO: Update this comment -- action space should change in the new environment
         # 0 no operation
         # 1~32 move
         # 33~122 attack
@@ -51,8 +44,6 @@ class DZBEnv(gym.Env):
             self.init_env()
 
         self.marines = []
-        self.banelings = []
-        self.zerglings = []
 
         raw_obs = self.env.reset()[0]
         return self.get_derived_obs(raw_obs)
@@ -64,23 +55,15 @@ class DZBEnv(gym.Env):
     def get_derived_obs(self, raw_obs):
         obs = np.zeros((19,3), dtype=np.uint8)
         marines = self.get_units_by_type(raw_obs, units.Terran.Marine, 1)
-        zerglings = self.get_units_by_type(raw_obs, units.Zerg.Zergling, 4)
-        banelings = self.get_units_by_type(raw_obs, units.Zerg.Baneling, 4)
         self.marines = []
-        self.banelings = []
-        self.zerglings = []
+
+        # TODO: Update to reflect neutral elements
 
         for i, m in enumerate(marines):
             self.marines.append(m)
             obs[i] = np.array([m.x, m.y, m[2]])
 
-        for i, b in enumerate(banelings):
-            self.banelings.append(b)
-            obs[i+9] = np.array([b.x, b.y, b[2]])
-
-        for i, z in enumerate(zerglings):
-            self.zerglings.append(z)
-            obs[i+13] = np.array([z.x, z.y, z[2]])
+        # Populate minerals elements in the obs
 
         return obs
 
@@ -89,6 +72,9 @@ class DZBEnv(gym.Env):
         reward = raw_obs.reward
         obs = self.get_derived_obs(raw_obs)
         # each step will set the dictionary to emtpy
+
+        # TODO: How to collect the rewards?
+        # TODO: How to modify the reward function here!?
         return obs, reward, raw_obs.last(), {}
 
 
@@ -96,6 +82,7 @@ class DZBEnv(gym.Env):
         if action == 0:
             action_mapped = actions.RAW_FUNCTIONS.no_op()
         elif action<=32:
+            # TODO: Update this -- there are only two marines on this map, not 8!
             derived_action = np.floor((action-1)/8)
             idx = (action-1)%8
             if derived_action == 0:
@@ -107,6 +94,7 @@ class DZBEnv(gym.Env):
             else:
                 action_mapped = self.move_right(idx)
         else:
+            # TODO: Might not need this block, there is no attacking the banelings!
             eidx = np.floor((action-33)/9)
             aidx = (action-33)%9
             action_mapped = self.attack(aidx, eidx)
@@ -152,6 +140,7 @@ class DZBEnv(gym.Env):
             return actions.RAW_FUNCTIONS.no_op()
 
 
+    # TODO: This should not be used.  Consider removing!
     def attack(self, aidx, eidx):
         try:
             selected = self.marines[aidx]
