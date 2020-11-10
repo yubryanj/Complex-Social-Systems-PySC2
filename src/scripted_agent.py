@@ -18,8 +18,10 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy
+from absl import app
 
 from pysc2.agents import base_agent
+from pysc2.env import sc2_env
 from pysc2.lib import actions, features, units
 
 _PLAYER_SELF = features.PlayerRelative.SELF
@@ -27,33 +29,6 @@ _PLAYER_NEUTRAL = features.PlayerRelative.NEUTRAL  # beacon/minerals
 _PLAYER_ENEMY = features.PlayerRelative.ENEMY
 
 FUNCTIONS = actions.FUNCTIONS
-RAW_FUNCTIONS = actions.RAW_FUNCTIONS
-
-
-def _xy_locs(mask):
-  """Mask should be a set of bools from comparison with a feature layer."""
-  y, x = mask.nonzero()
-  return list(zip(x, y))
-
-
-class CollectMineralShards(base_agent.BaseAgent):
-  """An agent specifically for solving the CollectMineralShards map."""
-
-  def step(self, obs):
-    super(CollectMineralShards, self).step(obs)
-    if FUNCTIONS.Move_screen.id in obs.observation.available_actions:
-      player_relative = obs.observation.feature_screen.player_relative
-      minerals = _xy_locs(player_relative == _PLAYER_NEUTRAL)
-      if not minerals:
-        return FUNCTIONS.no_op()
-      marines = _xy_locs(player_relative == _PLAYER_SELF)
-      marine_xy = numpy.mean(marines, axis=0).round()  # Average location.
-      distances = numpy.linalg.norm(numpy.array(minerals) - marine_xy, axis=1)
-      closest_mineral_xy = minerals[numpy.argmin(distances)]
-      return FUNCTIONS.Move_screen("now", closest_mineral_xy)
-    else:
-      return FUNCTIONS.select_army("select")
-
 
 class CollectMineralShardsFeatureUnits(base_agent.BaseAgent):
   """An agent for solving the CollectMineralShards map with feature units.
@@ -66,7 +41,8 @@ class CollectMineralShardsFeatureUnits(base_agent.BaseAgent):
 
   def setup(self, obs_spec, action_spec):
     super(CollectMineralShardsFeatureUnits, self).setup(obs_spec, action_spec)
-    if "feature_units" not in obs_spec:
+
+    if "feature_units" not in obs_spec[0]:
       raise Exception("This agent requires the feature_units observation.")
 
   def reset(self):
@@ -76,20 +52,35 @@ class CollectMineralShardsFeatureUnits(base_agent.BaseAgent):
 
   def step(self, obs):
     super(CollectMineralShardsFeatureUnits, self).step(obs)
+
+    # Get a list of marines
     marines = [unit for unit in obs.observation.feature_units
                if unit.alliance == _PLAYER_SELF]
+
+    # if no marines are available, return nothing
     if not marines:
       return FUNCTIONS.no_op()
+
+    # Select one marine
     marine_unit = next((m for m in marines
                         if m.is_selected == self._marine_selected), marines[0])
+
+    # Get the position of the marine
     marine_xy = [marine_unit.x, marine_unit.y]
 
+    # Nothing selected or the wrong marine is selected.
     if not marine_unit.is_selected:
-      # Nothing selected or the wrong marine is selected.
+
+      # Enable the marine selected flag 
       self._marine_selected = True
+
+      # select the marine
       return FUNCTIONS.select_point("select", marine_xy)
 
+
+
     if FUNCTIONS.Move_screen.id in obs.observation.available_actions:
+      
       # Find and move to the nearest mineral.
       minerals = [[unit.x, unit.y] for unit in obs.observation.feature_units
                   if unit.alliance == _PLAYER_NEUTRAL]
@@ -99,9 +90,8 @@ class CollectMineralShardsFeatureUnits(base_agent.BaseAgent):
         minerals.remove(self._previous_mineral_xy)
 
       if minerals:
-        # Find the closest.
-        distances = numpy.linalg.norm(
-            numpy.array(minerals) - numpy.array(marine_xy), axis=1)
+        # Find the closest mineral.
+        distances = numpy.linalg.norm(numpy.array(minerals) - numpy.array(marine_xy), axis=1)
         closest_mineral_xy = minerals[numpy.argmin(distances)]
 
         # Swap to the other marine.
@@ -112,48 +102,37 @@ class CollectMineralShardsFeatureUnits(base_agent.BaseAgent):
     return FUNCTIONS.no_op()
 
 
-class CollectMineralShardsRaw(base_agent.BaseAgent):
-  """An agent for solving CollectMineralShards with raw units and actions.
 
-  Controls the two marines independently:
-  - move to nearest mineral shard that wasn't the previous target
-  - swap marine and repeat
-  """
+def main(unused_argv):
+    agent = CollectMineralShardsFeatureUnits()
+    try:
+        while True:
+            with sc2_env.SC2Env(
+                map_name ="CollectMineralShards",
+                players=[sc2_env.Agent(sc2_env.Race.terran)],
+                agent_interface_format = features.AgentInterfaceFormat(
+                    feature_dimensions = features.Dimensions(screen=84, minimap=64),
+                    use_feature_units = True
+                ),
+                step_mul = 16,
+                game_steps_per_episode = 0,
+                visualize=True
+            ) as env:
 
-  def setup(self, obs_spec, action_spec):
-    super(CollectMineralShardsRaw, self).setup(obs_spec, action_spec)
-    if "raw_units" not in obs_spec:
-      raise Exception("This agent requires the raw_units observation.")
+                agent.setup(env.observation_spec(), env.action_spec())
+                timesteps = env.reset()
+                agent.reset()
 
-  def reset(self):
-    super(CollectMineralShardsRaw, self).reset()
-    self._last_marine = None
-    self._previous_mineral_xy = [-1, -1]
+                while True:
+                    step_actions = [agent.step(timesteps[0])]
+                    if timesteps[0].last():
+                        break
+                    timesteps = env.step(step_actions)
 
-  def step(self, obs):
-    super(CollectMineralShardsRaw, self).step(obs)
-    marines = [unit for unit in obs.observation.raw_units
-               if unit.alliance == _PLAYER_SELF]
-    if not marines:
-      return RAW_FUNCTIONS.no_op()
-    marine_unit = next((m for m in marines if m.tag != self._last_marine))
-    marine_xy = [marine_unit.x, marine_unit.y]
 
-    minerals = [[unit.x, unit.y] for unit in obs.observation.raw_units
-                if unit.alliance == _PLAYER_NEUTRAL]
+    except KeyboardInterrupt:
+        pass
 
-    if self._previous_mineral_xy in minerals:
-      # Don't go for the same mineral shard as other marine.
-      minerals.remove(self._previous_mineral_xy)
 
-    if minerals:
-      # Find the closest.
-      distances = numpy.linalg.norm(
-          numpy.array(minerals) - numpy.array(marine_xy), axis=1)
-      closest_mineral_xy = minerals[numpy.argmin(distances)]
-
-      self._last_marine = marine_unit.tag
-      self._previous_mineral_xy = closest_mineral_xy
-      return RAW_FUNCTIONS.Move_pt("now", marine_unit.tag, closest_mineral_xy)
-
-    return RAW_FUNCTIONS.no_op()
+if __name__ == "__main__":
+    app.run(main)
