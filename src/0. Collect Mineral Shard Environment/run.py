@@ -9,8 +9,8 @@ FLAGS = flags.FLAGS
 FLAGS([''])
 
 # create vectorized environment
-env = gym.make('collect_mineral_shards-v0')
-eng = Collect_Mineral_Shard_Env()
+# env = gym.make('collect_mineral_shards-v0')
+# env = Collect_Mineral_Shard_Env()
 env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env()])
 
 # use ppo2 to learn and save the model when finished
