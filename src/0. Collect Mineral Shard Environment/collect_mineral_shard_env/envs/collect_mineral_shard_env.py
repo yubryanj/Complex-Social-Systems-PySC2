@@ -133,6 +133,8 @@ class CollectMineralShardEnv(gym.Env):
         obs = self.get_derived_obs(raw_obs)
 
         # Set the rewards equal to the amount of mineral collected at the end of an episode!
+        # Todo: Does episode mean every action? If not, do we want to include a reward scheme, that just rewards every
+        #  mineral collected?
         if raw_obs.last():
             
             # Determine if we are applying an efficiency incentive in the current experiment
@@ -153,6 +155,7 @@ class CollectMineralShardEnv(gym.Env):
             # Reward received by the agent contingent on the amount of mineral collected
             # Plus a possible efficiency incentive contingent on the amount of time incurred.
             reward = minerals_collected - efficiency_incentive
+            # Todo: Could this result in negative reward values? Do we allow this?
 
             print(f'reward:  {reward}')
 
