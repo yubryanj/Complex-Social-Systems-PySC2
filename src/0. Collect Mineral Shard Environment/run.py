@@ -11,8 +11,8 @@ if __name__ == "__main__":
     FLAGS = flags.FLAGS
     FLAGS([''])
 
-    efficiency_incentive = True
-    log_name = "efficiency_incentive"
+    efficiency_incentive = False
+    log_name = ""
 
     # create vectorized PySC2 mineral collection environment
     env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env(efficiency_incentive= efficiency_incentive)])
