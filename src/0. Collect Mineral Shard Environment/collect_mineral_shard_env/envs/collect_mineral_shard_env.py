@@ -5,7 +5,6 @@ from pysc2.env import sc2_env
 from pysc2.lib import actions, features, units
 from gym import spaces
 import numpy as np
-import datetime
 
 from stable_baselines.common.policies import MlpPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
@@ -16,19 +15,21 @@ class Collect_Mineral_Shard_Env(gym.Env):
 
     metadata = {'render.modes': ['human']}
     default_settings = {
-        'map_name': "CollectMineralShards",
-        'players': [sc2_env.Agent(sc2_env.Race.terran)],
+        'map_name'  : "CollectMineralShards",
+        'players'   : [sc2_env.Agent(sc2_env.Race.terran)],
         'agent_interface_format': features.AgentInterfaceFormat(
                     action_space=actions.ActionSpace.RAW,
                     use_raw_units=True,
-                    raw_resolution=64),
-        'realtime': False
+                    raw_resolution=64,
+                    ),
+        'realtime'  : False,
+        'visualize' : False,
     }
 
 
     def __init__(self,  MAXIMUM_NUMBER_OF_MARINES = 2,
                         MAXIMUM_NUMBER_OF_SHARDS = 20,
-                        efficiency_incentive = False,
+                        efficiency_incentive = True,
                         MINERAL_COLLECTION_CAP = 1000,
                         **kwargs):
         super().__init__()
@@ -41,7 +42,7 @@ class Collect_Mineral_Shard_Env(gym.Env):
         self.MAXIMUM_NUMBER_OF_SHARDS   = MAXIMUM_NUMBER_OF_SHARDS
         self.MINERAL_COLLECTION_CAP     = MINERAL_COLLECTION_CAP
         self.observation_shape          = (self.MAXIMUM_NUMBER_OF_MARINES + self.MAXIMUM_NUMBER_OF_SHARDS, 2) # (22,2)
-        self.episode_start_time         = datetime.datetime.now().timestamp()
+        self.steps_taken                = 0
         self.efficiency_incentive       = efficiency_incentive
 
         # 0 no operation
@@ -70,7 +71,7 @@ class Collect_Mineral_Shard_Env(gym.Env):
         self.marines            = []
         self.number_of_marines  = 0
         self.number_of_minerals = 0
-        self.episode_start_time = datetime.datetime.now().timestamp()
+        self.self.steps_taken   = 0 
 
 
         raw_obs = self.env.reset()[0]
@@ -128,31 +129,29 @@ class Collect_Mineral_Shard_Env(gym.Env):
         :output done            True/False reflecting whether an episode is finished
         :output information     additional information
         """
+        # Update the number of steps taken
+        self.steps_taken += 1
+
+        # Retrieve the raw observation vector resulting from taking the requested action
         raw_obs = self.take_action(action)
+
+        # Convert the raw Pysc2 observation vector into an agent friendly format
         obs = self.get_derived_obs(raw_obs)
 
         # Set the rewards equal to the amount of mineral collected at the end of an episode!
         if raw_obs.last():
-            
-            # Determine if we are applying an efficiency incentive in the current experiment
-            if self.efficiency_incentive:
-                
-                # Calculates the aount of seconds passed since the episode began
-                current_time = datetime.datetime.now().timestamp()
-                efficiency_incentive = current_time - self.episode_start_time
-
-            else:
-                # If efficiency incentive is not in play, ignore this component of the reward
-                efficiency_incentive = 0
 
             # Each mineral collected contributes 100 to the mineral collection.
             # Scale it down by 100 such that the time component has a larger influence
             minerals_collected = raw_obs.observation.player.minerals * (1.0/100.0)
 
             # Reward received by the agent contingent on the amount of mineral collected
-            # Plus a possible efficiency incentive contingent on the amount of time incurred.
-            reward = minerals_collected - efficiency_incentive
+            reward = minerals_collected
 
+            # Plus a possible efficiency incentive contingent on the amount of time incurred.
+            if self.efficiency_incentive:
+                reward -= efficiency_incentive
+            
             print(f'reward:  {reward}')
 
         else:
@@ -284,5 +283,5 @@ if __name__ == "__main__":
 
     # use ppo2 to learn and save the model when finished
     model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log="log/")
-    model.learn(total_timesteps=int(1e5), tb_log_name="first_run", reset_num_timesteps=False)
+    model.learn(total_timesteps=int(1e5), tb_log_name="efficiency_incentive", reset_num_timesteps=False)
     model.save("model/collect_mineral_shard")

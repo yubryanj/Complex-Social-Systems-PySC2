@@ -15,5 +15,5 @@ env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env()])
 
 # use ppo2 to learn and save the model when finished
 model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log="log/")
-model.learn(total_timesteps=int(1e5), tb_log_name="first_run", reset_num_timesteps=False)
-model.save("model/collect_mineral_shard")
+model.learn(total_timesteps=int(1e5), tb_log_name="efficiency_incentive", reset_num_timesteps=False)
+model.save("model/collect_mineral_shard_efficiency_incentive")

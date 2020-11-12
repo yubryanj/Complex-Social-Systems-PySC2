@@ -10,3 +10,8 @@ Run program:
 ```
 python run.py
 ```
+
+Observer training in tensorboard:
+```
+tensorboard --logdir log\first_run
+```
