@@ -12,7 +12,11 @@ from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import PPO2
 from absl import flags
 
-class Collect_Mineral_Shard_Env(gym.Env):
+
+class CollectMineralShardEnv(gym.Env):
+    """
+    Todo: add docstring
+    """
 
     metadata = {'render.modes': ['human']}
     default_settings = {
@@ -25,16 +29,17 @@ class Collect_Mineral_Shard_Env(gym.Env):
         'realtime': False
     }
 
-
-    def __init__(self,  MAXIMUM_NUMBER_OF_MARINES = 2,
-                        MAXIMUM_NUMBER_OF_SHARDS = 20,
-                        efficiency_incentive = False,
-                        MINERAL_COLLECTION_CAP = 1000,
-                        **kwargs):
+    def __init__(self,
+                 MAXIMUM_NUMBER_OF_MARINES = 2,
+                 MAXIMUM_NUMBER_OF_SHARDS = 20,
+                 efficiency_incentive = False,
+                 MINERAL_COLLECTION_CAP = 1000,
+                 **kwargs):
         super().__init__()
         self.kwargs                     = kwargs
         self.env                        = None
         self.marines                    = []
+        self.minerals                   = []
         self.number_of_marines          = 0
         self.number_of_minerals         = 0
         self.MAXIMUM_NUMBER_OF_MARINES  = MAXIMUM_NUMBER_OF_MARINES
@@ -57,7 +62,6 @@ class Collect_Mineral_Shard_Env(gym.Env):
             dtype   = np.uint8
             )
 
-
     def reset(self):
         """
         Reset is called when    (1) first starting the environment and 
@@ -68,14 +72,13 @@ class Collect_Mineral_Shard_Env(gym.Env):
         if self.env is None:
             self.init_env()
         self.marines            = []
+        self.minerals           = []
         self.number_of_marines  = 0
         self.number_of_minerals = 0
         self.episode_start_time = datetime.datetime.now().timestamp()
 
-
         raw_obs = self.env.reset()[0]
         return self.get_derived_obs(raw_obs)
-
 
     def init_env(self):
         """
@@ -84,8 +87,7 @@ class Collect_Mineral_Shard_Env(gym.Env):
         :output None
         """
         args = {**self.default_settings, **self.kwargs}
-        self.env =  sc2_env.SC2Env(**args)
-
+        self.env = sc2_env.SC2Env(**args)
 
     def get_derived_obs(self, raw_obs):
         """
@@ -117,7 +119,6 @@ class Collect_Mineral_Shard_Env(gym.Env):
             index += 1
 
         return obs
-
 
     def step(self, action):
         """
@@ -158,11 +159,9 @@ class Collect_Mineral_Shard_Env(gym.Env):
         else:
             reward = 0
 
-
-        # TODO: i.e. explore investingating incentive structure by setting done to true at 1,000 minerals.
+        # TODO: i.e. explore investigating incentive structure by setting done to true at 1,000 minerals.
 
         return obs, reward, raw_obs.last(), {}
-
 
     def take_action(self, action):
         """
@@ -187,7 +186,6 @@ class Collect_Mineral_Shard_Env(gym.Env):
         raw_obs = self.env.step([action_mapped])[0]
         return raw_obs
 
-
     def move_up(self, idx):
         """
         Moves the agent up
@@ -201,7 +199,6 @@ class Collect_Mineral_Shard_Env(gym.Env):
         except:
             return actions.RAW_FUNCTIONS.no_op()
 
-
     def move_down(self, idx):
         """
         Moves the agent down
@@ -213,7 +210,6 @@ class Collect_Mineral_Shard_Env(gym.Env):
             return actions.RAW_FUNCTIONS.Move_pt("now", selected.tag, new_pos)
         except:
             return actions.RAW_FUNCTIONS.no_op()
-
 
     def move_left(self, idx):
         """
@@ -227,7 +223,6 @@ class Collect_Mineral_Shard_Env(gym.Env):
         except:
             return actions.RAW_FUNCTIONS.no_op()
 
-
     def move_right(self, idx):
         """
         Moves the agent right
@@ -239,7 +234,6 @@ class Collect_Mineral_Shard_Env(gym.Env):
             return actions.RAW_FUNCTIONS.Move_pt("now", selected.tag, new_pos)
         except:
             return actions.RAW_FUNCTIONS.no_op()
-
 
     def get_units_by_type(self, obs, unit_type, player_relative=0):
         """
@@ -253,7 +247,6 @@ class Collect_Mineral_Shard_Env(gym.Env):
             if unit.unit_type == unit_type
             and unit.alliance == player_relative]
 
-
     def close(self):
         """
         Closes the gym environment
@@ -264,7 +257,6 @@ class Collect_Mineral_Shard_Env(gym.Env):
         if self.env is not None:
             self.env.close()
         super().close()
-
 
     def render(self, mode='human'):
         """
@@ -280,7 +272,7 @@ if __name__ == "__main__":
     FLAGS([''])
 
     # create vectorized environment
-    env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env()])
+    env = DummyVecEnv([lambda: CollectMineralShardEnv()])
 
     # use ppo2 to learn and save the model when finished
     model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log="log/")

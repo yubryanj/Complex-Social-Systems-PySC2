@@ -1,2 +1,2 @@
 
-from collect_mineral_shard_env.envs.collect_mineral_shard_env import Collect_Mineral_Shard_Env
+from collect_mineral_shard_env.envs.collect_mineral_shard_env import CollectMineralShardEnv

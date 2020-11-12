@@ -1,5 +1,5 @@
 import gym
-from collect_mineral_shard_env.envs import Collect_Mineral_Shard_Env 
+from collect_mineral_shard_env.envs import CollectMineralShardEnv
 from stable_baselines.common.policies import MlpPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import PPO2
@@ -11,7 +11,7 @@ FLAGS([''])
 # create vectorized environment
 # env = gym.make('collect_mineral_shards-v0')
 # env = Collect_Mineral_Shard_Env()
-env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env()])
+env = DummyVecEnv([lambda: CollectMineralShardEnv()])
 
 # use ppo2 to learn and save the model when finished
 model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log="log/")
