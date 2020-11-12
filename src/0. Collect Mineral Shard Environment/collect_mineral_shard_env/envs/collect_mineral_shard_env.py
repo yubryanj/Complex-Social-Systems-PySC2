@@ -29,7 +29,7 @@ class Collect_Mineral_Shard_Env(gym.Env):
 
     def __init__(self,  MAXIMUM_NUMBER_OF_MARINES = 2,
                         MAXIMUM_NUMBER_OF_SHARDS = 20,
-                        efficiency_incentive = True,
+                        efficiency_incentive = False,
                         MINERAL_COLLECTION_CAP = 1000,
                         **kwargs):
         super().__init__()
@@ -44,6 +44,8 @@ class Collect_Mineral_Shard_Env(gym.Env):
         self.observation_shape          = (self.MAXIMUM_NUMBER_OF_MARINES + self.MAXIMUM_NUMBER_OF_SHARDS, 2) # (22,2)
         self.steps_taken                = 0
         self.efficiency_incentive       = efficiency_incentive
+
+        print(f'Using efficiency incentive: {self.efficiency_incentive}')
 
         # 0 no operation
         # 1 - 8 move
@@ -71,7 +73,7 @@ class Collect_Mineral_Shard_Env(gym.Env):
         self.marines            = []
         self.number_of_marines  = 0
         self.number_of_minerals = 0
-        self.self.steps_taken   = 0 
+        self.steps_taken        = 0 
 
 
         raw_obs = self.env.reset()[0]
@@ -150,9 +152,11 @@ class Collect_Mineral_Shard_Env(gym.Env):
 
             # Plus a possible efficiency incentive contingent on the amount of time incurred.
             if self.efficiency_incentive:
-                reward -= efficiency_incentive
+                reward -= self.steps_taken
             
             print(f'reward:  {reward}')
+
+            # NOTE: Calculating incentive by steps taken may not be fruitful for incentivizing useful actions
 
         else:
             reward = 0
@@ -278,10 +282,13 @@ if __name__ == "__main__":
     FLAGS = flags.FLAGS
     FLAGS([''])
 
+    efficiency_incentive = False
+
     # create vectorized environment
-    env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env()])
+    env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env(efficiency_incentive= efficiency_incentive)])
+    log_name = "efficiency_incentive"
 
     # use ppo2 to learn and save the model when finished
     model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log="log/")
-    model.learn(total_timesteps=int(1e5), tb_log_name="efficiency_incentive", reset_num_timesteps=False)
-    model.save("model/collect_mineral_shard")
+    model.learn(total_timesteps=int(1e5), tb_log_name=log_name, reset_num_timesteps=False)
+    model.save(f"model/collect_mineral_shard_{log_name}")
