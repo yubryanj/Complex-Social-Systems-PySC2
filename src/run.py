@@ -83,7 +83,7 @@ if __name__ == "__main__":
     parser.add_argument('--log_name', type=str, help='name of the log', default='logs')
     parser.add_argument('--timesteps', type=int, help='number of timesteps to train for', default=1e10) #TODO Change me to 1e10
 
-    # Convert to a dictionary
+    # Convert to a dictionary 
     parameters = vars(parser.parse_args())
 
     print(f"Beginning the experiment: {parameters['experiment_id']}")
