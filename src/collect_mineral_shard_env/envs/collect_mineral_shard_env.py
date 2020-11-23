@@ -45,8 +45,6 @@ class Collect_Mineral_Shard_Env(gym.Env):
         self.steps_taken                = 0
         self.efficiency_incentive       = efficiency_incentive
 
-        print(f'Using efficiency incentive: {self.efficiency_incentive}')
-
         # 0 no operation
         # 1 - 8 move
         self.action_space = spaces.Discrete(9)
@@ -145,7 +143,7 @@ class Collect_Mineral_Shard_Env(gym.Env):
 
             # Each mineral collected contributes 100 to the mineral collection.
             # Scale it down by 100 such that the time component has a larger influence
-            minerals_collected = raw_obs.observation.player.minerals * (1.0/100.0)
+            minerals_collected = raw_obs.observation.player.minerals * (1.0/10.0)
 
             # Reward received by the agent contingent on the amount of mineral collected
             reward = minerals_collected
@@ -153,8 +151,6 @@ class Collect_Mineral_Shard_Env(gym.Env):
             # Plus a possible efficiency incentive contingent on the amount of time incurred.
             if self.efficiency_incentive:
                 reward -= self.steps_taken
-            
-            print(f'reward:  {reward}')
 
             # NOTE: Calculating incentive by steps taken may not be fruitful for incentivizing useful actions
 

@@ -1,7 +1,6 @@
 # Complex-Social-Systems
 
-### Customized star craft 2 gym environment focused on investigating emergent behavior in social environemnts modeled after
-### the mineral collection minigame in PySC2 environment
+### Customized star craft 2 gym environment focused on investigating emergent behavior in social environemnts
 
 Two directory trees are present.
 1. pysc2-tutorial

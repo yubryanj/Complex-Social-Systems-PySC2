@@ -1,27 +1,137 @@
 
 from collect_mineral_shard_env.envs import Collect_Mineral_Shard_Env 
+from agents.random_agent import RandomAgent
 from stable_baselines.common.policies import MlpPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
-from stable_baselines import PPO2
+from stable_baselines import PPO2, A2C, DQN
+from stable_baselines.deepq.policies import MlpPolicy as DQN_MlpPolicy
+from stable_baselines.sac.policies import MlpPolicy as SAC_MlpPolicy
+import argparse
 from absl import flags
+import os
+from os import path
+import numpy as np
+
+def load_model(environment, algorithm='PPO', log_dir="log/"):
+    """
+    Loads the reinforcement learning algorithm
+    :param  algorithm   the reinforcement learning algorithm to run
+    :param  weights     path to the trained model weights
+    :output model       the agent model
+    """
+    
+    # Place holder for the model
+    agent = None
+
+    # Load the agent
+    if algorithm == 'PPO':
+        agent = PPO2(MlpPolicy, environment, verbose=False, tensorboard_log=f"{log_dir}/{algorithm}")
+    elif algorithm == 'A2C':
+        agent = A2C(MlpPolicy, environment, verbose=False, tensorboard_log=f"{log_dir}/{algorithm}")
+    elif algorithm == 'DQN':
+        agent = DQN(DQN_MlpPolicy, env=environment, verbose=False, tensorboard_log=f"{log_dir}/{algorithm}")
+    elif algorithm == 'RANDOM':
+        agent = RandomAgent(environment)
+        return agent
+    else:
+        assert("Algorithm does not exist!")
+    
+    # Directory to the model results
+    model_dir = f'models/{algorithm}'
+
+    # Define path to trained weights, if it exists
+    weights_dir = f'models/{algorithm}/weights.zip'
+
+    # Weights found -- Load the trained model
+    if os.path.exists(weights_dir):
+        print(f'Loading weights!')
+        
+        # Load the weights into the agent
+        agent.load(weights_dir)
+
+    # No weights found -- Train the model!
+    else:
+        print('Training the model!')
+        
+        # Train the agent!
+        agent.learn(total_timesteps=int(parameters['timesteps']), tb_log_name=parameters['log_name'], reset_num_timesteps=False)
+
+        # Make sure the weight directory exists, or else saving will fail!
+        if not path.exists(model_dir):
+            os.makedirs(model_dir)
+
+        # Save the weights!
+        agent.save(weights_dir)
+
+        print("Model trained and weights saved!")
+
+    return agent
 
 
 if __name__ == "__main__":
-
     FLAGS = flags.FLAGS
     FLAGS([''])
 
-    efficiency_incentive = False
-    log_name = ""
+    base_dir='/Volumes/GoogleDrive/My Drive/Education/Eidgenössische Technische Hochschule Zürich/Complex Social Systems/Project/Complex-Social-Systems/src'
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--experiment_id', type=str, help='id of experiment', default='000')
+    parser.add_argument('--total_episodes', type=int, help='number of episodes to run for', default='10') #TODO Change me to 10
+    parser.add_argument('--apply_incentive', dest='apply_incentive', help='include incentive structure in the rewards', action='store_true')
+    parser.add_argument('--weights_dir', type=str, help='location of trained model')
+    parser.add_argument('--algorithm', type=str, help='(RANDOM,PPO,A2C,DQN)', default='PPO')
+    parser.add_argument('--log_name', type=str, help='name of the log', default='logs')
+    parser.add_argument('--timesteps', type=int, help='number of timesteps to train for', default=1e10) #TODO Change me to 1e10
+
+    # Convert to a dictionary
+    parameters = vars(parser.parse_args())
+
+    print(f"Beginning the experiment: {parameters['experiment_id']}")
+    print(f'Using parameters: {parameters}')
 
     # create vectorized PySC2 mineral collection environment
-    env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env(efficiency_incentive= efficiency_incentive)])
+    env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env(efficiency_incentive= parameters['apply_incentive'])])
 
-    # use ppo2 to learn and save the model when finished
-    model = PPO2(MlpPolicy, env, verbose=False, tensorboard_log="log/")
+    # Load the agent
+    agent = load_model(environment=env, algorithm=parameters['algorithm'])
 
-    # Train them model 
-    model.learn(total_timesteps=int(1e5), tb_log_name=log_name, reset_num_timesteps=False)
+    # Store the rewards of the episode
+    episode_rewards = []
 
-    # Save the model!
-    model.save(f"model/collect_mineral_shard_{log_name}")
+    # Repeat for the total number of episodes in order to capture the amount of variation
+    for _ in range(parameters['total_episodes']):
+
+        # Inititalize the reward for this episode
+        episode_reward = 0.0
+        
+        # obtain the initial observation vector
+        obs = env.reset()
+
+        # Capture whether the episode is finished or not
+        done = False
+
+        # Take actions!
+        while not done:
+            
+            # Decide on an action
+            action, _states = agent.predict(obs)
+            
+            # Take the decided action
+            obs, reward, done, info = env.step(action)
+
+            # Update the reward for this episode
+            episode_reward += reward
+
+        # Store the reward of the next episode
+        episode_rewards.append(episode_reward[0])
+        
+        # Display rewards of this episode
+        print(f'Episode reward: {episode_reward[0]}')
+
+    print("Experiment Completed.")
+    print(f'Results: {episode_rewards}')
+
+    np.savetxt( f'models/{parameters["algorithm"]}/experiment_{parameters["experiment_id"]}_{parameters["algorithm"]}_results.csv', \
+                episode_rewards, \
+                delimiter="," \
+                )
