@@ -1,4 +1,5 @@
 
+from cloudpickle.cloudpickle import parametrized_type_hint_getinitargs
 from collect_mineral_shard_env.envs import Collect_Mineral_Shard_Env 
 from agents.random_agent import RandomAgent
 from stable_baselines.common.policies import MlpPolicy
@@ -12,7 +13,7 @@ import os
 from os import path
 import numpy as np
 
-def load_model(environment, algorithm='PPO', log_dir="log/"):
+def load_model(environment, parameters):
     """
     Loads the reinforcement learning algorithm
     :param  algorithm   the reinforcement learning algorithm to run
@@ -22,25 +23,28 @@ def load_model(environment, algorithm='PPO', log_dir="log/"):
     
     # Place holder for the model
     agent = None
+    
+    # Filename to save training logs
+    log_name = parameters['experiment_id'] + '_' + parameters['log_name']
 
     # Load the agent
-    if algorithm == 'PPO':
-        agent = PPO2(MlpPolicy, environment, verbose=False, tensorboard_log=f"{log_dir}/{algorithm}")
-    elif algorithm == 'A2C':
-        agent = A2C(MlpPolicy, environment, verbose=False, tensorboard_log=f"{log_dir}/{algorithm}")
-    elif algorithm == 'DQN':
-        agent = DQN(DQN_MlpPolicy, env=environment, verbose=False, tensorboard_log=f"{log_dir}/{algorithm}")
-    elif algorithm == 'RANDOM':
+    if parameters['algorithm'] == 'PPO':
+        agent = PPO2(MlpPolicy, environment, verbose=False, tensorboard_log=f"{parameters['log_dir']}/{parameters['algorithm']}")
+    elif parameters['algorithm'] == 'A2C':
+        agent = A2C(MlpPolicy, environment, verbose=False, tensorboard_log=f"{parameters['log_dir']}/{parameters['algorithm']}")
+    elif parameters['algorithm'] == 'DQN':
+        agent = DQN(DQN_MlpPolicy, env=environment, verbose=False, tensorboard_log=f"{parameters['log_dir']}/{parameters['algorithm']}")
+    elif parameters['algorithm'] == 'RANDOM':
         agent = RandomAgent(environment)
         return agent
     else:
         assert("Algorithm does not exist!")
     
     # Directory to the model results
-    model_dir = f'models/{algorithm}'
+    model_dir = f"models/{parameters['algorithm']}"
 
     # Define path to trained weights, if it exists
-    weights_dir = f'models/{algorithm}/weights.zip'
+    weights_dir = f"models/{parameters['algorithm']}/weights.zip"
 
     # Weights found -- Load the trained model
     if os.path.exists(weights_dir):
@@ -49,12 +53,27 @@ def load_model(environment, algorithm='PPO', log_dir="log/"):
         # Load the weights into the agent
         agent.load(weights_dir)
 
+        if parameters['continue_training']:
+        
+            print(f"Continuing training!")
+
+            # Train the agent further!
+            agent.learn(total_timesteps=int(parameters['timesteps']), tb_log_name=log_name, reset_num_timesteps=False)
+
+            print(f"Training completed!")
+
+            # Save the weights!
+            agent.save(weights_dir)
+
+            print(f"Updated weights saved!")
+
+
     # No weights found -- Train the model!
     else:
         print('Training the model!')
         
         # Train the agent!
-        agent.learn(total_timesteps=int(parameters['timesteps']), tb_log_name=parameters['log_name'], reset_num_timesteps=False)
+        agent.learn(total_timesteps=int(parameters['timesteps']), tb_log_name=log_name, reset_num_timesteps=False)
 
         # Make sure the weight directory exists, or else saving will fail!
         if not path.exists(model_dir):
@@ -76,14 +95,16 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--experiment_id', type=str, help='id of experiment', default='000')
-    parser.add_argument('--total_episodes', type=int, help='number of episodes to run for', default='10') #TODO Change me to 10
+    parser.add_argument('--total_episodes', type=int, help='number of episodes to run for', default='10')
     parser.add_argument('--apply_incentive', dest='apply_incentive', help='include incentive structure in the rewards', action='store_true')
+    parser.add_argument('--continue-training', dest='continue_training', help='to continue training using weights already learned', action='store_true')
     parser.add_argument('--episodic_rewards', dest='episodic_rewards', help='return rewards only at the end of an episode', action='store_true')
     parser.add_argument('--mineral_thresholding', dest='mineral_thresholding', help='stop incurring penalites after a certain mineral collection threshold is reached', action='store_true')
     parser.add_argument('--weights_dir', type=str, help='location of trained model')
     parser.add_argument('--algorithm', type=str, help='(RANDOM,PPO,A2C,DQN)', default='PPO')
+    parser.add_argument('--log_dir', type=str, help='name of the log directory', default='logs/')
     parser.add_argument('--log_name', type=str, help='name of the log', default='logs')
-    parser.add_argument('--timesteps', type=int, help='number of timesteps to train for', default=1e10) #TODO Change me to 1e10
+    parser.add_argument('--timesteps', type=int, help='number of timesteps to train for', default=1e6) 
 
     # Convert to a dictionary 
     parameters = vars(parser.parse_args())
@@ -98,7 +119,7 @@ if __name__ == "__main__":
                                                         )])
 
     # Load the agent
-    agent = load_model(environment=env, algorithm=parameters['algorithm'])
+    agent = load_model(environment=env, parameters=parameters)
 
     # Store the rewards of the episode
     episode_rewards = []
