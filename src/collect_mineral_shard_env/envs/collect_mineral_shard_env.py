@@ -27,10 +27,13 @@ class Collect_Mineral_Shard_Env(gym.Env):
     }
 
 
-    def __init__(self,  MAXIMUM_NUMBER_OF_MARINES = 2,
-                        MAXIMUM_NUMBER_OF_SHARDS = 20,
-                        efficiency_incentive = False,
-                        MINERAL_COLLECTION_CAP = 1000,
+    def __init__(self,  MAXIMUM_NUMBER_OF_MARINES   = 2,
+                        MAXIMUM_NUMBER_OF_SHARDS    = 20,
+                        efficiency_incentive        = False,
+                        episodic_rewards            = False,
+                        mineral_thresholding        = False,
+                        MINERAL_COLLECTION_CAP      = 1000,
+                        STEP_COST                   = 20,
                         **kwargs):
         super().__init__()
         self.kwargs                     = kwargs
@@ -38,12 +41,16 @@ class Collect_Mineral_Shard_Env(gym.Env):
         self.marines                    = []
         self.number_of_marines          = 0
         self.number_of_minerals         = 0
+        self.steps_taken                = 0
+        self.last_mineral_position      = 0
         self.MAXIMUM_NUMBER_OF_MARINES  = MAXIMUM_NUMBER_OF_MARINES
         self.MAXIMUM_NUMBER_OF_SHARDS   = MAXIMUM_NUMBER_OF_SHARDS
         self.MINERAL_COLLECTION_CAP     = MINERAL_COLLECTION_CAP
+        self.STEP_COST                  = STEP_COST
         self.observation_shape          = (self.MAXIMUM_NUMBER_OF_MARINES + self.MAXIMUM_NUMBER_OF_SHARDS, 2) # (22,2)
-        self.steps_taken                = 0
         self.efficiency_incentive       = efficiency_incentive
+        self.episodic_rewards           = episodic_rewards
+        self.mineral_thresholding       = mineral_thresholding
 
         # 0 no operation
         # 1 - 8 move
@@ -68,10 +75,11 @@ class Collect_Mineral_Shard_Env(gym.Env):
         """
         if self.env is None:
             self.init_env()
-        self.marines            = []
-        self.number_of_marines  = 0
-        self.number_of_minerals = 0
-        self.steps_taken        = 0 
+        self.marines                = []
+        self.number_of_marines      = 0
+        self.number_of_minerals     = 0
+        self.steps_taken            = 0 
+        self.last_mineral_position  = 0
 
 
         raw_obs = self.env.reset()[0]
@@ -120,6 +128,38 @@ class Collect_Mineral_Shard_Env(gym.Env):
         return obs
 
 
+    def calculate_step_reward(self, minerals_collected, is_last_move = False):
+        """
+        Compute the reward depending on the incentive scheme
+        :param  minerals_collected  amount of minerals collected to this point in time
+        :param  is_last_move        whether the episode is over
+        :output reward              reward to be distributed to the agents
+        """
+
+        # Set the rewards equal to the amount of mineral collected at the end of an episode!
+        if self.episodic_rewards:
+
+            # If the episode is over
+            if is_last_move:
+
+                # Reward received by the agent contingent on the amount of mineral collected
+                reward = minerals_collected
+
+                # NOTE: Calculating incentive by steps taken may not be fruitful for incentivizing useful actions
+            else:
+                reward = 0
+        
+        # Incremental rewards for every mineral collected
+        else:
+            # reward is then the change in mineral position
+            reward = minerals_collected - self.last_mineral_position
+
+            # Update the tracking of current mineral position
+            self.last_mineral_position = minerals_collected
+        
+        return reward
+
+
     def step(self, action):
         """
         Step is called every time the agent decides on an action
@@ -138,27 +178,20 @@ class Collect_Mineral_Shard_Env(gym.Env):
         # Convert the raw Pysc2 observation vector into an agent friendly format
         obs = self.get_derived_obs(raw_obs)
 
-        # Set the rewards equal to the amount of mineral collected at the end of an episode!
-        if raw_obs.last():
+        # Each mineral collected contributes 100 to the mineral collection.
+        minerals_collected = raw_obs.observation.player.minerals
 
-            # Each mineral collected contributes 100 to the mineral collection.
-            # Scale it down by 100 such that the time component has a larger influence
-            minerals_collected = raw_obs.observation.player.minerals * (1.0/10.0)
+        # Compute the reward
+        reward = self.calculate_step_reward(minerals_collected, is_last_move = raw_obs.last())
 
-            # Reward received by the agent contingent on the amount of mineral collected
-            reward = minerals_collected
+        # Plus a possible efficiency incentive contingent on the amount of time incurred.
+        if self.efficiency_incentive:
 
-            # Plus a possible efficiency incentive contingent on the amount of time incurred.
-            if self.efficiency_incentive:
-                reward -= self.steps_taken
-
-            # NOTE: Calculating incentive by steps taken may not be fruitful for incentivizing useful actions
-
-        else:
-            reward = 0
-
-
-        # TODO: i.e. explore investingating incentive structure by setting done to true at 1,000 minerals.
+            # Stop incurring a reward penalty after collecting the prescribed amount of minerals
+            if self.mineral_thresholding and minerals_collected > self.MINERAL_COLLECTION_CAP:
+                pass
+            else:
+                reward -= self.STEP_COST
 
         return obs, reward, raw_obs.last(), {}
 

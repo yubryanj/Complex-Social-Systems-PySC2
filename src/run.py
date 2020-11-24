@@ -78,6 +78,8 @@ if __name__ == "__main__":
     parser.add_argument('--experiment_id', type=str, help='id of experiment', default='000')
     parser.add_argument('--total_episodes', type=int, help='number of episodes to run for', default='10') #TODO Change me to 10
     parser.add_argument('--apply_incentive', dest='apply_incentive', help='include incentive structure in the rewards', action='store_true')
+    parser.add_argument('--episodic_rewards', dest='episodic_rewards', help='return rewards only at the end of an episode', action='store_true')
+    parser.add_argument('--mineral_thresholding', dest='mineral_thresholding', help='stop incurring penalites after a certain mineral collection threshold is reached', action='store_true')
     parser.add_argument('--weights_dir', type=str, help='location of trained model')
     parser.add_argument('--algorithm', type=str, help='(RANDOM,PPO,A2C,DQN)', default='PPO')
     parser.add_argument('--log_name', type=str, help='name of the log', default='logs')
@@ -90,7 +92,10 @@ if __name__ == "__main__":
     print(f'Using parameters: {parameters}')
 
     # create vectorized PySC2 mineral collection environment
-    env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env(efficiency_incentive= parameters['apply_incentive'])])
+    env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env(efficiency_incentive   = parameters['apply_incentive'],
+                                                        mineral_thresholding    = parameters['mineral_thresholding'],
+                                                        episodic_rewards        = parameters['episodic_rewards']
+                                                        )])
 
     # Load the agent
     agent = load_model(environment=env, algorithm=parameters['algorithm'])
