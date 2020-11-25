@@ -1,5 +1,4 @@
-
-from cloudpickle.cloudpickle import parametrized_type_hint_getinitargs
+# from cloudpickle.cloudpickle import parametrized_type_hint_getinitargs
 from collect_mineral_shard_env.envs import Collect_Mineral_Shard_Env 
 from agents.random_agent import RandomAgent
 from stable_baselines.common.policies import MlpPolicy
@@ -44,7 +43,7 @@ def load_model(environment, parameters):
     model_dir = f"models/{parameters['algorithm']}"
 
     # Define path to trained weights, if it exists
-    weights_dir = f"models/{parameters['algorithm']}/weights.zip"
+    weights_dir = f"models/{parameters['algorithm']}/weights_experiment_{parameters['experiment_id']}.zip"
 
     # Weights found -- Load the trained model
     if os.path.exists(weights_dir):
