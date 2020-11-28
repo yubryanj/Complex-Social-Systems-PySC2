@@ -145,13 +145,16 @@ if __name__ == "__main__":
             obs, reward, done, info = env.step(action)
 
             # Update the reward for this episode
-            episode_reward += reward
+            if done:
+                episode_reward = info[0]['minerals_collected']
 
         # Store the reward of the next episode
-        episode_rewards.append(episode_reward[0])
+        episode_rewards.append(episode_reward)
         
         # Display rewards of this episode
-        print(f'Episode reward: {episode_reward[0]}')
+        print(f'Episode reward: {episode_reward}')
+
+        #TODO: This should be the amount of minerals collected. Not the episode reward!
 
     print("Experiment Completed.")
     print(f'Results: {episode_rewards}')

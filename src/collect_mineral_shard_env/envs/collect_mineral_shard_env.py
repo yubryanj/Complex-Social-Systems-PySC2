@@ -193,7 +193,9 @@ class Collect_Mineral_Shard_Env(gym.Env):
             else:
                 reward -= self.STEP_COST
 
-        return obs, reward, raw_obs.last(), {}
+        info = {'minerals_collected':raw_obs.observation.player.minerals}
+
+        return obs, reward, raw_obs.last(), info
 
 
     def take_action(self, action):
