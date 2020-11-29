@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--experiment_id', type=str, help='id of experiment', default='000')
-    parser.add_argument('--total_episodes', type=int, help='number of episodes to run for', default='2')
+    parser.add_argument('--total_episodes', type=int, help='number of episodes to run for', default='10')
     parser.add_argument('--apply_incentive', dest='apply_incentive', help='include incentive structure in the rewards', action='store_true')
     parser.add_argument('--continue-training', dest='continue_training', help='to continue training using weights already learned', action='store_true')
     parser.add_argument('--episodic_rewards', dest='episodic_rewards', help='return rewards only at the end of an episode', action='store_true')
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     parser.add_argument('--algorithm', type=str, help='(RANDOM,PPO,A2C,DQN)', default='PPO')
     parser.add_argument('--log_dir', type=str, help='name of the log directory', default='logs/')
     parser.add_argument('--log_name', type=str, help='name of the log', default='logs')
-    parser.add_argument('--timesteps', type=int, help='number of timesteps to train for', default=1) 
+    parser.add_argument('--timesteps', type=int, help='number of timesteps to train for', default=1e6) 
 
     # Convert to a dictionary 
     parameters = vars(parser.parse_args())
@@ -120,17 +120,11 @@ if __name__ == "__main__":
     # Load the agent
     agent = load_model(environment=env, parameters=parameters)
 
-    # Store the rewards of the episode
-    episode_rewards = []
-
     # Step rewards
     minerals_collecteds = []
 
     # Repeat for the total number of episodes in order to capture the amount of variation
     for _ in range(parameters['total_episodes']):
-
-        # Inititalize the reward for this episode
-        episode_reward = 0.0
 
         # Collect the cumulative reward at every step
         minerals_collected = []
@@ -150,31 +144,15 @@ if __name__ == "__main__":
             # Take the decided action
             obs, reward, done, info = env.step(action)
 
-            # Update the reward for this episode
-            if done:
-                episode_reward = info[0]['minerals_collected']
-
             # Update the cumulative minerals collected
             minerals_collected.append(info[0]['minerals_collected'])
 
-        # Store the reward of the next episode
-        episode_rewards.append(episode_reward)
-
         # Store the step rewards for the entire episode
         minerals_collecteds.append(minerals_collected)
-        
-        # Display rewards of this episode
-        print(f'Episode reward: {episode_reward}')
 
     print("Experiment Completed.")
-    print(f'Results: {episode_rewards}')
 
     print(minerals_collecteds)
-
-    np.savetxt( f'models/{parameters["algorithm"]}/experiment_{parameters["experiment_id"]}_{parameters["algorithm"]}_results.csv', \
-                episode_rewards, \
-                delimiter="," \
-                )
 
     np.savetxt( f'models/{parameters["algorithm"]}/experiment_{parameters["experiment_id"]}_{parameters["algorithm"]}_step_results.csv', \
                 minerals_collecteds, \
