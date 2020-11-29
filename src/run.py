@@ -124,7 +124,7 @@ if __name__ == "__main__":
     episode_rewards = []
 
     # Step rewards
-    step_rewards = []
+    minerals_collecteds = []
 
     # Repeat for the total number of episodes in order to capture the amount of variation
     for _ in range(parameters['total_episodes']):
@@ -136,7 +136,7 @@ if __name__ == "__main__":
         cumulative_reward = 0.0
 
         # Collect the cumulative reward at every step
-        step_reward = []
+        minerals_collected = []
                 
         # obtain the initial observation vector
         obs = env.reset()
@@ -158,16 +158,16 @@ if __name__ == "__main__":
                 episode_reward = info[0]['minerals_collected']
 
             # Update the cumulative minerals collected
-            cumulative_reward += reward[0]
+            minerals_collected = info[0]['minerals_collected']
 
             # Store in the step rewards
-            step_reward.append(cumulative_reward)
+            minerals_collected.append(cumulative_reward)
 
         # Store the reward of the next episode
         episode_rewards.append(episode_reward)
 
         # Store the step rewards for the entire episode
-        step_rewards.append(step_reward)
+        minerals_collecteds.append(minerals_collected)
         
         # Display rewards of this episode
         print(f'Episode reward: {episode_reward}')
@@ -175,14 +175,14 @@ if __name__ == "__main__":
     print("Experiment Completed.")
     print(f'Results: {episode_rewards}')
 
-    print(step_rewards)
+    print(minerals_collecteds)
 
     np.savetxt( f'models/{parameters["algorithm"]}/experiment_{parameters["experiment_id"]}_{parameters["algorithm"]}_results.csv', \
                 episode_rewards, \
                 delimiter="," \
                 )
 
-np.savetxt( f'models/{parameters["algorithm"]}/experiment_{parameters["experiment_id"]}_{parameters["algorithm"]}_step_results.csv', \
-                step_rewards, \
+    np.savetxt( f'models/{parameters["algorithm"]}/experiment_{parameters["experiment_id"]}_{parameters["algorithm"]}_step_results.csv', \
+                minerals_collecteds, \
                 delimiter="," \
                 )
