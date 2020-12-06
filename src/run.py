@@ -118,7 +118,7 @@ if __name__ == "__main__":
     env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env(   efficiency_incentive    = parameters['apply_incentive'],
                                                             mineral_thresholding    = parameters['mineral_thresholding'],
                                                             episodic_rewards        = parameters['episodic_rewards'],
-                                                            mineral_collection_cap  = parameters['mineral_collection_cap']
+                                                            MINERAL_COLLECTION_CAP  = parameters['mineral_collection_cap']
                                                             )])
 
     # Load the agent
