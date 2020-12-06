@@ -26,6 +26,13 @@ def load_model(environment, parameters):
     # Filename to save training logs
     log_name = parameters['experiment_id'] + '_' + parameters['log_name']
 
+    # Directory to the model results
+    model_dir = f"models/{parameters['algorithm']}"
+
+    # Define path to trained weights, if it exists
+    weights_dir = f"models/{parameters['algorithm']}/weights_experiment_{parameters['experiment_id']}.zip"
+
+
     # Load the agent
     if parameters['algorithm'] == 'PPO':
         agent = PPO2(MlpPolicy, environment, verbose=False, tensorboard_log=f"{parameters['log_dir']}/{parameters['algorithm']}")
@@ -39,11 +46,6 @@ def load_model(environment, parameters):
     else:
         assert("Algorithm does not exist!")
     
-    # Directory to the model results
-    model_dir = f"models/{parameters['algorithm']}"
-
-    # Define path to trained weights, if it exists
-    weights_dir = f"models/{parameters['algorithm']}/weights_experiment_{parameters['experiment_id']}.zip"
 
     # Weights found -- Load the trained model
     if os.path.exists(weights_dir):
@@ -99,11 +101,12 @@ if __name__ == "__main__":
     parser.add_argument('--continue-training', dest='continue_training', help='to continue training using weights already learned', action='store_true')
     parser.add_argument('--episodic_rewards', dest='episodic_rewards', help='return rewards only at the end of an episode', action='store_true')
     parser.add_argument('--mineral_thresholding', dest='mineral_thresholding', help='stop incurring penalites after a certain mineral collection threshold is reached', action='store_true')
+    parser.add_argument('--mineral_collection_cap', type=str, help='Threshold at which the negative incentive stops', default='600')
     parser.add_argument('--weights_dir', type=str, help='location of trained model')
     parser.add_argument('--algorithm', type=str, help='(RANDOM,PPO,A2C,DQN)', default='PPO')
     parser.add_argument('--log_dir', type=str, help='name of the log directory', default='logs/')
     parser.add_argument('--log_name', type=str, help='name of the log', default='logs')
-    parser.add_argument('--timesteps', type=int, help='number of timesteps to train for', default=1e6) 
+    parser.add_argument('--timesteps', type=int, help='number of timesteps to train for', default=1e5) 
 
     # Convert to a dictionary 
     parameters = vars(parser.parse_args())
@@ -114,7 +117,8 @@ if __name__ == "__main__":
     # create vectorized PySC2 mineral collection environment
     env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env(   efficiency_incentive    = parameters['apply_incentive'],
                                                             mineral_thresholding    = parameters['mineral_thresholding'],
-                                                            episodic_rewards        = parameters['episodic_rewards']
+                                                            episodic_rewards        = parameters['episodic_rewards'],
+                                                            mineral_collection_cap  = parameters['mineral_collection_cap']
                                                             )])
 
     # Load the agent
@@ -153,6 +157,10 @@ if __name__ == "__main__":
     print("Experiment Completed.")
 
     print(minerals_collecteds)
+    results_dir = f'models/{parameters["algorithm"]}'
+
+    if not path.exists(results_dir):
+            os.makedirs(results_dir)
 
     np.savetxt( f'models/{parameters["algorithm"]}/experiment_{parameters["experiment_id"]}_{parameters["algorithm"]}_step_results.csv', \
                 minerals_collecteds, \

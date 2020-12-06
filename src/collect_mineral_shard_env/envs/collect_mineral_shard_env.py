@@ -32,7 +32,7 @@ class Collect_Mineral_Shard_Env(gym.Env):
                         efficiency_incentive        = False,
                         episodic_rewards            = False,
                         mineral_thresholding        = False,
-                        MINERAL_COLLECTION_CAP      = 1000,
+                        MINERAL_COLLECTION_CAP      = 600,
                         STEP_COST                   = 20,
                         **kwargs):
         super().__init__()
