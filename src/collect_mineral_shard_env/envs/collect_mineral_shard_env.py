@@ -43,9 +43,9 @@ class Collect_Mineral_Shard_Env(gym.Env):
         self.number_of_minerals         = 0
         self.steps_taken                = 0
         self.last_mineral_position      = 0
-        self.MAXIMUM_NUMBER_OF_MARINES  = MAXIMUM_NUMBER_OF_MARINES
-        self.MAXIMUM_NUMBER_OF_SHARDS   = MAXIMUM_NUMBER_OF_SHARDS
-        self.MINERAL_COLLECTION_CAP     = MINERAL_COLLECTION_CAP
+        self.MAXIMUM_NUMBER_OF_MARINES  = int(MAXIMUM_NUMBER_OF_MARINES)
+        self.MAXIMUM_NUMBER_OF_SHARDS   = int(MAXIMUM_NUMBER_OF_SHARDS)
+        self.MINERAL_COLLECTION_CAP     = int(MINERAL_COLLECTION_CAP)
         self.STEP_COST                  = STEP_COST
         self.observation_shape          = (self.MAXIMUM_NUMBER_OF_MARINES + self.MAXIMUM_NUMBER_OF_SHARDS, 2) # (22,2)
         self.efficiency_incentive       = efficiency_incentive
