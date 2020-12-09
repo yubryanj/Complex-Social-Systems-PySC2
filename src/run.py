@@ -120,7 +120,7 @@ if __name__ == "__main__":
                                                             mineral_thresholding    = parameters['mineral_thresholding'],
                                                             episodic_rewards        = parameters['episodic_rewards'],
                                                             MINERAL_COLLECTION_CAP  = parameters['mineral_collection_cap'],
-                                                            STEP_COST               = parameters['step_cost'],
+                                                            STEP_COST               = parameters['stepcost'],
                                                             )])
 
     # Load the agent
