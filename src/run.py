@@ -107,6 +107,7 @@ if __name__ == "__main__":
     parser.add_argument('--log_dir', type=str, help='name of the log directory', default='logs/')
     parser.add_argument('--log_name', type=str, help='name of the log', default='logs')
     parser.add_argument('--timesteps', type=int, help='number of timesteps to train for', default=1e5) 
+    parser.add_argument('--stepcost', type=int, help='number of timesteps to train for', default=20) 
 
     # Convert to a dictionary 
     parameters = vars(parser.parse_args())
@@ -118,7 +119,8 @@ if __name__ == "__main__":
     env = DummyVecEnv([lambda: Collect_Mineral_Shard_Env(   efficiency_incentive    = parameters['apply_incentive'],
                                                             mineral_thresholding    = parameters['mineral_thresholding'],
                                                             episodic_rewards        = parameters['episodic_rewards'],
-                                                            MINERAL_COLLECTION_CAP  = parameters['mineral_collection_cap']
+                                                            MINERAL_COLLECTION_CAP  = parameters['mineral_collection_cap'],
+                                                            STEP_COST               = parameters['step_cost'],
                                                             )])
 
     # Load the agent
