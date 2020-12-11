@@ -1,4 +1,4 @@
-# Assessing the influence of different incentive structures onagent behaviour using reinforcement learning
+# Assessing the influence of different incentive structures on agent behaviour using reinforcement learning
 
 > * Group Name: Team Potato
 > * Group participants names: Anya Heider, Anna Huwyler, Bryan Yu ( By last names)
