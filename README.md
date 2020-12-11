@@ -1,6 +1,4 @@
 # Assessing the influence of different incentive structures onagent behaviour using reinforcement learning
-# Agent-Based Modeling and Social System Simulation 2019 (Template)
-(text between brackets to be removed)
 
 > * Group Name: Team Potato
 > * Group participants names: Anya Heider, Anna Huwyler, Bryan Yu ( By last names)
@@ -21,8 +19,6 @@ We begin with a motivating story from the annuals of business history ofincentiv
 
 ## Fundamental Questions
 We hypothesize that the effectiveness of different incentive structures in causing theintended behavior change of agents can be modeled and evaluated by computationalmethods. In particular, we believe reinforcement learning, with it’s design of usingfeedback signals to teach an agent about an unknown environment, serves as an in-teresting framework with minimal assumptions in which to explore our hypothesis.
-
-(Formulate a few, clear questions. Articulate them in sub-questions, from the more general to the more specific. )
 
 
 ## Expected Results
