@@ -30,13 +30,13 @@ Our initial interest in the multi-agent regime arises from the hypothesisthat it
 
 
 ## References 
-Volodymyr Mnih et al. “Asynchronous methods for deep reinforcement learning”. In:International conference on machine learning. 2016, pp. 1928–1937.
-[2]Volodymyr Mnih et al. “Playing atari with deep reinforcement learning”. In:arXivpreprint arXiv:1312.5602(2013).
-[3]Charles T Munger.Poor Charlie’s Almanack: The Wit and Wisdom of Charles T.Munger. Donning Company, 2006.
-[4]John Schulman et al. “Proximal policy optimization algorithms”. In:arXiv preprintarXiv:1707.06347(2017).
-[5]Oriol Vinyals et al.StarCraft II: A New Challenge for Reinforcement Learning. 2017.
-[6]Wikipedia.Q-Learning.url:https://en.wikipedia.org/wiki/Q-learning. (ac-cessed: 26.11.2020).
-[7]Wikipedia.Reinforcement  Learning.url:https : / / en . wikipedia . org / wiki /Reinforcement_learning. (accessed: 24.11.2020).
+>[1]Volodymyr Mnih et al. “Asynchronous methods for deep reinforcement learning”. In:International conference on machine learning. 2016, pp. 1928–1937.
+>[2]Volodymyr Mnih et al. “Playing atari with deep reinforcement learning”. In:arXivpreprint arXiv:1312.5602(2013).
+>[3]Charles T Munger.Poor Charlie’s Almanack: The Wit and Wisdom of Charles T.Munger. Donning Company, 2006.
+>[4]John Schulman et al. “Proximal policy optimization algorithms”. In:arXiv preprintarXiv:1707.06347(2017).
+>[5]Oriol Vinyals et al.StarCraft II: A New Challenge for Reinforcement Learning. 2017.
+>[6]Wikipedia.Q-Learning.url:https://en.wikipedia.org/wiki/Q-learning. (ac-cessed: 26.11.2020).
+>[7]Wikipedia.Reinforcement  Learning.url:https : / / en . wikipedia . org / wiki /Reinforcement_learning. (accessed: 24.11.2020).
 
 
 (Explain possible extension to the above models)
