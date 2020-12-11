@@ -26,13 +26,13 @@ Our initial interest in the multi-agent regime arises from the hypothesisthat it
 
 
 ## References 
-*<a id="1">[1] Volodymyr Mnih et al. “Asynchronous methods for deep reinforcement learning”. In:International conference on machine learning. 2016, pp. 1928–1937. </a>
-*<a id="2">[2]</a>Volodymyr Mnih et al. “Playing atari with deep reinforcement learning”. In:arXivpreprint arXiv:1312.5602(2013).
-*<a id="3">[3]</a>Charles T Munger.Poor Charlie’s Almanack: The Wit and Wisdom of Charles T.Munger. Donning Company, 2006.
-*<a id="4">[4]</a>John Schulman et al. “Proximal policy optimization algorithms”. In:arXiv preprintarXiv:1707.06347(2017).
-*<a id="5">[5]</a>Oriol Vinyals et al.StarCraft II: A New Challenge for Reinforcement Learning. 2017.
-*<a id="6">[6]</a>Wikipedia.Q-Learning.url:https://en.wikipedia.org/wiki/Q-learning. (ac-cessed: 26.11.2020).
-*<a id="7">[7]</a>Wikipedia.Reinforcement  Learning.url:https : / / en . wikipedia . org / wiki /Reinforcement_learning. (accessed: 24.11.2020).
+* <a id="1">[1] Volodymyr Mnih et al. “Asynchronous methods for deep reinforcement learning”. In:International conference on machine learning. 2016, pp. 1928–1937. </a>
+* <a id="2">[2]</a>Volodymyr Mnih et al. “Playing atari with deep reinforcement learning”. In:arXivpreprint arXiv:1312.5602(2013).
+* <a id="3">[3]</a>Charles T Munger.Poor Charlie’s Almanack: The Wit and Wisdom of Charles T.Munger. Donning Company, 2006.
+* <a id="4">[4]</a>John Schulman et al. “Proximal policy optimization algorithms”. In:arXiv preprintarXiv:1707.06347(2017).
+* <a id="5">[5]</a>Oriol Vinyals et al.StarCraft II: A New Challenge for Reinforcement Learning. 2017.
+* <a id="6">[6]</a>Wikipedia.Q-Learning.url:https://en.wikipedia.org/wiki/Q-learning. (ac-cessed: 26.11.2020).
+* <a id="7">[7]</a>Wikipedia.Reinforcement  Learning.url:https : / / en . wikipedia . org / wiki /Reinforcement_learning. (accessed: 24.11.2020).
 
 
 
